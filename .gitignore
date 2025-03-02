@@ -1,0 +1,12 @@
+
+venv/
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+
+models/__pycache__/
+preprocessing/__pycache__/
+
+dataset/tsla_data.csv
