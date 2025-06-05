@@ -15,7 +15,7 @@ import os
 
 def main():
     parser = argparse.ArgumentParser(description="Train the recommendation model")
-    parser.add_argument('dataset_name', type=str, nargs='?', default="movie", help="Dataset name (e.g., movie, book)")
+    parser.add_argument('dataset_name', type=str, nargs='?', default="tsla_data.csv", help="Dataset name (e.g., movie, book)")
 
     args = parser.parse_args()
     dataset_name = args.dataset_name

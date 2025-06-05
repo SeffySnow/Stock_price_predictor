@@ -62,37 +62,41 @@ def create_sequences(X, y, time_steps):
         ys.append(y[i + time_steps])
     return np.array(Xs), np.array(ys)
 
-def model_LSTM(X, y, time_steps = 60, test_size= 0.2):
+
+def model_LSTM(X, y, time_steps=60, test_size=0.2):
     X = X.values
     y = y.values
     print("preparing data for LSTM..\n")
-    
+
     scaler_X = MinMaxScaler(feature_range=(0, 1))
     scaler_y = MinMaxScaler(feature_range=(0, 1))
     X_scaled = scaler_X.fit_transform(X)
     y_scaled = scaler_y.fit_transform(y.reshape(-1, 1))
     Xs, ys = create_sequences(X_scaled, y_scaled, time_steps)
-    
-    X_train, X_test, y_train, y_test = train_test_split(Xs, ys, test_size=test_size, shuffle=False)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        Xs, ys, test_size=test_size, shuffle=False
+    )
+
     model = Sequential([
-        LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])),
+        LSTM(units=50, return_sequences=True,
+             input_shape=(X_train.shape[1], X_train.shape[2])),
         Dropout(0.2),
 
         LSTM(units=50, return_sequences=False),
         Dropout(0.2),
         Dense(units=25),
         Dense(units=1)
-])
+    ])
 
-    # Compile the model
-    model.compile(optimizer=Adam(learning_rate=0.001), loss='mean_squared_error')
-    # Print model summary
+    model.compile(optimizer=Adam(learning_rate=0.001),
+                  loss='mean_squared_error')
     model.summary()
 
-    # Early stopping to prevent overfitting
-    early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+    early_stopping = EarlyStopping(
+        monitor='val_loss', patience=10, restore_best_weights=True
+    )
     print("Model Training...\n")
-    # Train the model
     history = model.fit(
         X_train, y_train,
         epochs=50,
@@ -101,18 +105,19 @@ def model_LSTM(X, y, time_steps = 60, test_size= 0.2):
         callbacks=[early_stopping],
         verbose=1
     )
+
     y_pred_scaled = model.predict(X_test)
 
-    # Inverse transform predictions and actual values
+    # Inverse-transform both predictions and true values
     y_pred = scaler_y.inverse_transform(y_pred_scaled)
     y_test_actual = scaler_y.inverse_transform(y_test)
 
-    
+    # Compute metrics on the same scale
     mae = mean_absolute_error(y_test_actual, y_pred)
-    r2 = r2_score(y_test, y_pred)
+    r2  = r2_score(y_test_actual, y_pred)
     mse = mean_squared_error(y_test_actual, y_pred)
     rmse = np.sqrt(mse)
-    print(f"LSTM test results: MAE: {mae:.4} , MSE: {mse:.4}, RMSE: {rmse:.4}, R-squared: {r2:.4} ")
+    print(f"LSTM test results: MAE: {mae:.4} , MSE: {mse:.4}, RMSE: {rmse:.4}, R-squared: {r2:.4}")
 
     plt.figure(figsize=(14, 5))
     plt.plot(y_test_actual, color='blue', label='Actual Prices')
@@ -123,8 +128,13 @@ def model_LSTM(X, y, time_steps = 60, test_size= 0.2):
     plt.legend()
     plt.savefig("plots/LSTM.png")
     plt.close()
-    return {"MAE":mae,"MSE": mse, "RMSE":rmse,"R-squared": {r2:.4}} , y_pred
 
+    return {
+        "MAE": mae,
+        "MSE": mse,
+        "RMSE": rmse,
+        "R-squared": round(r2, 4)
+    }, y_pred
 
 
 
